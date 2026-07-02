@@ -8,10 +8,12 @@ set -euo pipefail
 
 COUNT="${1:-2000}"
 JOBS="${2:-32}"
-WORK_DIR="${WORK_DIR:-/data/claude-wd/solana-localnet}"
+WORK_DIR="${WORK_DIR:-./solana-localnet}"
 RPC_URL="${RPC_URL:-http://127.0.0.1:8899}"
 
-export PATH="/data/solana/release/bin:$PATH"
+# solana CLI (solana / spl-token / solana-keygen) must be on PATH.
+# For a non-standard install, point SOLANA_BIN at the release bin dir.
+[ -n "${SOLANA_BIN:-}" ] && export PATH="$SOLANA_BIN:$PATH"
 
 cd "$WORK_DIR"
 
@@ -47,8 +49,8 @@ LOG="$WORK_DIR/populator-progress.log"
 ls "$RCPTS" | head -n "$COUNT" | \
     xargs -I{} -P "$JOBS" bash -c '
         kp="'"$RCPTS"'/{}"
-        owner=$(/data/solana/release/bin/solana-keygen pubkey "$kp")
-        if /data/solana/release/bin/spl-token create-account "'"$MINT"'" \
+        owner=$(solana-keygen pubkey "$kp")
+        if spl-token create-account "'"$MINT"'" \
             --owner "$owner" \
             --fee-payer "'"$WORK_DIR"'/keypair.json" \
             --url "'"$RPC_URL"'" \
