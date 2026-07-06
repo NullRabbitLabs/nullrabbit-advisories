@@ -2,8 +2,6 @@
 
 **NullRabbit Operator Advisory** · Published 2026-07-04
 
-> **Why we publish publicly:** these are out-of-scope-for-bounty, no-embargo node-availability findings — analysis + reproducer only. See [Why we publish these findings publicly](../WHY-WE-PUBLISH.md).
-
 ## Summary
 
 A CometBFT node completes the full SecretConnection STS handshake — including the

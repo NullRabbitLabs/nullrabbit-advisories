@@ -2,8 +2,6 @@
 
 **NullRabbit Operator Advisory** · Published 2026-07-02
 
-> **Why we publish publicly:** these are out-of-scope-for-bounty, no-embargo node-availability findings — analysis + reproducer only. See [Why we publish these findings publicly](../WHY-WE-PUBLISH.md).
-
 ## Summary
 
 An IOTA node's public gRPC server accepts an **unbounded** number of concurrent
