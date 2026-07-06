@@ -24,3 +24,8 @@ We publish for three reasons:
 
 No embargo applies. No weaponized PoC is released. Analysis + reproducer only. This is how the
 reference substrate is built.
+
+---
+
+*Hosted / canonical version: <https://nullrabbit.ai/research> (Publication Policy). This file is the
+in-repo copy so each advisory stays self-contained.*
