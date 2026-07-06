@@ -2,6 +2,8 @@
 
 **NullRabbit Operator Advisory** · Published 2026-05-12
 
+> **Why we publish publicly:** these are out-of-scope-for-bounty, no-embargo node-availability findings — analysis + reproducer only. See [Why we publish these findings publicly](../WHY-WE-PUBLISH.md).
+
 ## Summary
 
 Three architectural findings in the Agave JSON-RPC layer at

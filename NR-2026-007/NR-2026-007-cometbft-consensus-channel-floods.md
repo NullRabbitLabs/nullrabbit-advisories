@@ -2,6 +2,8 @@
 
 **NullRabbit Operator Advisory** · Published 2026-07-03
 
+> **Why we publish publicly:** these are out-of-scope-for-bounty, no-embargo node-availability findings — analysis + reproducer only. See [Why we publish these findings publicly](../WHY-WE-PUBLISH.md).
+
 ## Summary
 
 A peer that completes the CometBFT SecretConnection handshake can flood a
