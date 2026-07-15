@@ -23,6 +23,7 @@ on NullRabbit's publish-track.
 | `SUBSTRATE_LITEP2P_NOISE_PREAUTH` | `substrate_litep2p_noise_preauth_flood` | polkadot-substrate | `connection-exhaustion` (Noise pre-auth ECDH) | MEDIUM |
 | `OPT_OPNODE_LIBP2P_PRENOISE_NO_PERIP_GATE` | `op_libp2p_noise_preauth_flood` | optimism | `connection-exhaustion` (pre-Noise, no per-IP gate) | MEDIUM |
 | `CELESTIA_DA_LIBP2P_RCMGR_GLOBAL_CONN_CAP` | `celestia_libp2p_noise_preauth_flood` | celestia | `connection-exhaustion` (rcmgr global conn-cap) | MEDIUM |
+| `STARKNET_SEQUENCER_LIBP2P_PENDING_INBOUND` | `starknet_libp2p_noise_preauth_flood` | starknet | `connection-exhaustion` (pre-Noise, no pending/global cap) | MEDIUM |
 
 - **Reachability:** any host that can open a libp2p transport connection to the node's P2P listener —
   pre-auth, no peer identity needed.
@@ -32,7 +33,9 @@ on NullRabbit's publish-track.
   **Out of paid scope**, publish-track.
 - **Affected:** `lighthouse@176cce5` (rust-libp2p, `noise`), `filecoin-lotus@797feeb` (go-libp2p v0.47.0),
   `polkadot-sdk@1aeb6ec` (litep2p v0.14.0), `optimism@286107f` (go-libp2p v0.36.2),
-  `celestia-node@4343f61` (go-libp2p v0.48.0).
+  `celestia-node@4343f61` (go-libp2p v0.48.0), Starknet sequencer `apollo_network` (rust-libp2p 0.56.0,
+  `noise-xx`; `connection_limits` = `with_max_established_per_peer(1)` only — no `max_pending_incoming`
+  and no global/established cap, `peer_whitelist` admission gates POST-Noise).
 
 ## Mechanism (source-cited)
 
