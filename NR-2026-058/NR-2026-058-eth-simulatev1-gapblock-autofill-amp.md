@@ -16,7 +16,7 @@ request therefore expands into a large response. Availability only, out of paid 
 | `ETH_SIMULATEV1_GAPBLOCK_AUTOFILL_AMP` | `eth_simulateV1_gapblock_autofill_header_breadth_amp` | `eth_simulateV1` | `response_amp` | MEDIUM |
 
 - **Reachability:** any remote client reaching a non-loopback JSON-RPC; no auth.
-- **Affected:** go-ethereum exposing `eth_simulateV1` (EIP-7756 simulate).
+- **Affected:** go-ethereum exposing `eth_simulateV1` (its implementation of the `ethereum/execution-apis` `eth_simulate` method).
 
 ## Affected versions
 
