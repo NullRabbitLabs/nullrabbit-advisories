@@ -53,7 +53,7 @@ connections, 60 seconds sustained**:
 - Attacker traffic: ~2.34 GiB out (~40 MiB/s — **well below any volumetric threshold**)
 - Server `GOAWAY` frames issued: **zero**; memory not reclaimed after disconnect → OOM under sustained attack
 - Safe-mode baseline (same mirror, limit left at the `h2` library default of 20) tears the attacker down inside
-  ~50 ms with the expected `h2` warning log — no memory growth.
+  ~5 ms with the expected `h2` warning log — no memory growth.
 
 The published corpus reproducer (primitive `walrus_http2_rapid_reset`; family `memory_amp`,
 `source_class: original`, shipped in `NullRabbit/nr-bundles-public`) captures the **attack traffic** — rapid

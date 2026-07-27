@@ -38,7 +38,7 @@ at a controlled transparent address.
 ## Measurement (fidelity: lab)
 
 Self-owned Zebra 4.2.0 Regtest, N=1000 coinbase entries at a controlled t-address: `getaddressutxos` →
-**~116 B request → ~235 KB response (≈1,902×)**; `getaddresstxids` → **≈541×**; `getaddressbalance` scalar →
+**~116 B request → ~236 KB response (≈2,033×)**; `getaddresstxids` → **≈578× (~67 KB)**; `getaddressbalance` scalar →
 ≈1× (control). Corpus reproducers `zcash_zebra_getaddressutxos_response_amp` and
 `zcash_zebra_getaddresstxids_response_amp` (`response_amp`, `source_class: original`) ship in
 `NullRabbit/nr-bundles-public`.
