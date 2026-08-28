@@ -14,6 +14,12 @@ count without ever completing the requests, and the pinned memory grows accordin
 availability issue only — no funds, no consensus-safety impact. Sei's fork already sets
 `grpc.MaxConcurrentStreams(100)` at the equivalent call site; upstream does not.
 
+> **Correction, 2026-08-28.** This advisory previously stated a "per-source ceiling on the order of
+> ~7-8 GB RSS" attributable to a grpc-go internal limit near 1M streams, and described scaling across
+> attacker source IPs as measured and linear. Neither is supported by the underlying sweep, which grows
+> monotonically with no plateau and which varied connection count rather than source addresses. Both
+> claims are corrected below; the ~7 KB per-stream figure is unaffected and still holds.
+
 ## Findings at a glance
 
 | Item | Detail |
@@ -21,7 +27,7 @@ availability issue only — no funds, no consensus-safety impact. Sei's fork alr
 | Class | Per-stream state pin via unbounded HTTP/2 concurrent streams (`connection_exhaustion`) |
 | Reachability | Remote client on the Cosmos-SDK gRPC port (default `9090`); a stream open is all that is required |
 | Trigger | Many concurrent HTTP/2 streams multiplexed on a single TCP connection, held open |
-| Measured | ~7 KB pinned per held stream (gaiad); per-source ceiling on the order of ~7–8 GB RSS (loopback); linear in attacker source IPs |
+| Measured | ~7 KB pinned per held stream (gaiad, loopback); 962 MB RSS at 1 connection x 100k streams, rising to 7.6 GB at 10 x 100k — the top of the tested matrix, with no plateau observed |
 | Severity | Medium (public reach, cheap per-stream cost, no default cap; per-validator availability, no chain halt) |
 | Affected | Cosmos-SDK-based validators/nodes exposing the gRPC port without a `MaxConcurrentStreams` cap or an external per-source stream/connection limit |
 | Mitigation | Set `grpc.MaxConcurrentStreams` at the server call site (Sei pattern); L7/iptables per-source connection limits; sentry architecture; cgroup `MemoryMax` + `Restart=on-failure`. See Mitigation |
@@ -53,8 +59,11 @@ absent upstream — a roughly two-line difference at the server construction sit
 - **Other submission paths are unaffected.** The CometBFT RPC (default `26657`) and LCD/REST (default
   `1317`) submission paths use separate server pools and were **not** measurably degraded during the
   attack; this is not a transaction-front-running or asymmetric-degradation finding.
-- **Bounded per source, linear across sources.** A single source has a finite ceiling on held streams;
-  multiple attacker source IPs scale the pinned memory linearly.
+- **Growth is monotonic across the tested range; no ceiling was established.** RSS rose with held-stream
+  count at every point of the sweep, from 305 MB (1 connection x 1,000 streams) to 7.6 GB (10 x 100,000),
+  with no plateau. 7.6 GB is where testing stopped, **not** a demonstrated per-source limit. Scaling
+  across distinct attacker source IPs follows from the per-connection allocation but was **not**
+  measured: the sweep varied connection count from a single client, not source addresses.
 
 ## Reproduction (fidelity: explicit)
 
