@@ -1,31 +1,42 @@
 # NR-2026-065 — Aleo Verulink bridge: NAY-vote encoding mismatch between Go attestor and Solidity recovery → compliance screening unenforceable
 
-**NullRabbit Operator Advisory** · Published 2026-09-09 · **Corrected 2026-09-10**
+**NullRabbit Operator Advisory** · Published 2026-09-09 · **Updated 2026-09-10**
 
-> ## Correction — this does not describe production, and did not when it was published
+> ## Update 2026-09-10 — the encoding is fixed in the shipped attestor; the failure mode is not
 >
-> **The defect was fixed on 2025-08-14 and shipped in `v2.0.2` on 2025-10-09, thirteen months before
-> this advisory.** Everything below is accurate about the `main` branch and inaccurate about the
-> deployed system. We pinned `main`; `main` is not what runs.
->
-> Commit
+> **What changed.** Commit
 > [`6d4eb56`](https://github.com/venture23-aleo/verulink/commit/6d4eb566e018bfa7bc36b99ad020f0c6ac17ec13)
-> *"fix: sign hash"* changes `getEthBoolByte`'s NAY branch from `big.NewInt(0)` to `big.NewInt(2)`,
-> matching `Vote.NAY = 2`, and in the same change corrects the EIP-191 prefix length from
-> `len(pktHash)` to `len(hashOfPktHashAndVote)`. `git merge-base --is-ancestor 6d4eb56 v2.0.2`
-> returns true; against `main` it returns false. The attestor deploys from the `v2.0.x` tags.
+> (2025-08-14) sets the NAY branch of `getEthBoolByte` to `big.NewInt(2)`, matching `Vote.NAY`, and
+> corrects the EIP-191 prefix length in the same change. It is an ancestor of `v2.0.2` (2025-10-09).
+> The attestor deploys from the `v2.0.x` tags, so **a bridge running a released attestor against the
+> current contracts does not exhibit the revert described below.** We pinned `main`, which never
+> received that commit; that was our error and this notice corrects it.
 >
-> **What we got wrong.** This is a mismatch between two components, so a fix on *either* side closes
-> it. We verified the Solidity side across every branch and tag, observed that the release tags carry
-> no `solidity/` tree, and concluded the tags were not the deployment source. That was true and
-> irrelevant: the tags carry the **attestor**, which is where the fix landed. We examined the half
-> that had not changed and never looked at the half that had.
+> **What did not change, and why this advisory stands.** The two components agree on the encoding
+> today. Nothing makes them agree. `ConsumedPacketManagerImpl._checkSignatures` is byte-identical to
+> the version analysed below: it attempts recovery as `NAY`, then as `YEA`, and if neither yields a
+> registered attestor it executes
+> `require(_validateAttestor(...), "ConsumedPacketManagerImpl: unknown signer")` — **reverting the
+> entire bundle**. There is no tolerance for one unrecoverable signature among many, even when the
+> remaining signatures exceed threshold. The contract accepts exactly two encodings and treats
+> everything else as fatal to the batch.
 >
-> **Operator impact: none on any released version.** No action is required. If you are running the
-> `main` branch rather than a release tag, you are not running what the project ships.
+> So the defect was closed by changing one side of a convention held in two codebases, with no
+> on-chain check that the convention holds. Revert that Go commit, add a second attestor
+> implementation, or introduce a signer in another language, and the revert returns with no contract
+> change and no signal until a bundle fails.
 >
-> Corrected after Venture23 supplied the commit reference on 2026-09-10. The technical error is ours.
-> The page is corrected rather than deleted so that anyone who saw the original also sees this.
+> **This is not hypothetical.** `main` — the default branch, and what a reader of the repository
+> lands on — still encodes NAY as `0` today. An attestor built from `main` produces signatures that
+> revert bundles against production. The divergence between `main` and `staging` on the signing path
+> is itself the hazard.
+>
+> **Operator impact.** None on a released attestor paired with the current contracts. If you build
+> attestors from source, build from a release tag and confirm `getEthBoolByte` returns `2` for NAY.
+>
+> **Our position.** The severity below overstates the risk to a correctly-deployed bridge and we have
+> said so. The mitigation below — a symmetric recovery that does not revert the batch on a single
+> miss — is unchanged by the Go fix and remains the durable answer.
 
 ## Summary
 
@@ -54,7 +65,7 @@ No attacker is required. Any honest attestor casting a NAY triggers this structu
 
 - **Reachability:** permissionless in the sense that matters — no attacker action at all; an honest
   NAY is sufficient.
-- **Affected:** `github.com/venture23-aleo/verulink` @ `main`, reviewed **after** the Veridise and  **— `main` ONLY. Not any released tag; see the correction above.**
+- **Affected:** `github.com/venture23-aleo/verulink` @ `main`, reviewed **after** the Veridise and  **— `main`. Released `v2.0.x` tags carry the encoding fix; see the update above.**
   zkSecurity V2 audits.
 - **Scope note:** Verulink runs no Immunefi or HackerOne programme, and Aleo's Immunefi programme
   covers snarkVM/snarkOS only — bridge-application findings are explicitly out of scope. This was
