@@ -2,41 +2,29 @@
 
 **NullRabbit Operator Advisory** · Published 2026-09-09 · **Updated 2026-09-10**
 
-> ## Update 2026-09-10 — the encoding is fixed in the shipped attestor; the failure mode is not
+> ## Update 2026-09-10 — read this before the rest
 >
-> **What changed.** Commit
+> **If you run a released attestor (`v2.0.x`) against the current contracts, this advisory does not
+> apply to you and no action is required.** The encoding was corrected in
 > [`6d4eb56`](https://github.com/venture23-aleo/verulink/commit/6d4eb566e018bfa7bc36b99ad020f0c6ac17ec13)
-> (2025-08-14) sets the NAY branch of `getEthBoolByte` to `big.NewInt(2)`, matching `Vote.NAY`, and
-> corrects the EIP-191 prefix length in the same change. It is an ancestor of `v2.0.2` (2025-10-09).
-> The attestor deploys from the `v2.0.x` tags, so **a bridge running a released attestor against the
-> current contracts does not exhibit the revert described below.** We pinned `main`, which never
-> received that commit; that was our error and this notice corrects it.
+> on 2025-08-14 and shipped in `v2.0.2`. We analysed `main`, which never received that commit. The
+> advisory below describes `main`, not the deployed system.
 >
-> **What did not change, and why this advisory stands.** The two components agree on the encoding
-> today. Nothing makes them agree. `ConsumedPacketManagerImpl._checkSignatures` is byte-identical to
-> the version analysed below: it attempts recovery as `NAY`, then as `YEA`, and if neither yields a
-> registered attestor it executes
-> `require(_validateAttestor(...), "ConsumedPacketManagerImpl: unknown signer")` — **reverting the
-> entire bundle**. There is no tolerance for one unrecoverable signature among many, even when the
-> remaining signatures exceed threshold. The contract accepts exactly two encodings and treats
-> everything else as fatal to the batch.
+> **If you build attestors from source, check which branch.** `main` — the repository's default
+> branch — still encodes NAY as `0` today. An attestor built from it signs bundles that revert
+> against the live contracts. Build from a release tag and confirm `getEthBoolByte` returns `2` for
+> NAY.
 >
-> So the defect was closed by changing one side of a convention held in two codebases, with no
-> on-chain check that the convention holds. Revert that Go commit, add a second attestor
-> implementation, or introduce a signer in another language, and the revert returns with no contract
-> change and no signal until a bundle fails.
+> **The failure mode below is unchanged.** `ConsumedPacketManagerImpl._checkSignatures` is
+> byte-identical to the version analysed: it attempts recovery as `NAY`, then as `YEA`, and if
+> neither yields a registered attestor it reverts the **entire bundle** — no tolerance for one
+> unrecoverable signature among many, even when the rest exceed threshold. The two components agree
+> on the encoding today; nothing on-chain requires them to. Reverting that Go commit, adding a second
+> attestor implementation, or introducing a signer in another language reinstates the revert with no
+> contract change and no signal until a bundle fails.
 >
-> **This is not hypothetical.** `main` — the default branch, and what a reader of the repository
-> lands on — still encodes NAY as `0` today. An attestor built from `main` produces signatures that
-> revert bundles against production. The divergence between `main` and `staging` on the signing path
-> is itself the hazard.
->
-> **Operator impact.** None on a released attestor paired with the current contracts. If you build
-> attestors from source, build from a release tag and confirm `getEthBoolByte` returns `2` for NAY.
->
-> **Our position.** The severity below overstates the risk to a correctly-deployed bridge and we have
-> said so. The mitigation below — a symmetric recovery that does not revert the batch on a single
-> miss — is unchanged by the Go fix and remains the durable answer.
+> The mitigation in **Suggested fix** — a symmetric recovery that does not revert the batch on a
+> single miss — is untouched by the Go change and closes the class rather than the instance.
 
 ## Summary
 
