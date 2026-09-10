@@ -1,6 +1,31 @@
 # NR-2026-065 — Aleo Verulink bridge: NAY-vote encoding mismatch between Go attestor and Solidity recovery → compliance screening unenforceable
 
-**NullRabbit Operator Advisory** · Published 2026-09-09
+**NullRabbit Operator Advisory** · Published 2026-09-09 · **Corrected 2026-09-10**
+
+> ## Correction — this does not describe production, and did not when it was published
+>
+> **The defect was fixed on 2025-08-14 and shipped in `v2.0.2` on 2025-10-09, thirteen months before
+> this advisory.** Everything below is accurate about the `main` branch and inaccurate about the
+> deployed system. We pinned `main`; `main` is not what runs.
+>
+> Commit
+> [`6d4eb56`](https://github.com/venture23-aleo/verulink/commit/6d4eb566e018bfa7bc36b99ad020f0c6ac17ec13)
+> *"fix: sign hash"* changes `getEthBoolByte`'s NAY branch from `big.NewInt(0)` to `big.NewInt(2)`,
+> matching `Vote.NAY = 2`, and in the same change corrects the EIP-191 prefix length from
+> `len(pktHash)` to `len(hashOfPktHashAndVote)`. `git merge-base --is-ancestor 6d4eb56 v2.0.2`
+> returns true; against `main` it returns false. The attestor deploys from the `v2.0.x` tags.
+>
+> **What we got wrong.** This is a mismatch between two components, so a fix on *either* side closes
+> it. We verified the Solidity side across every branch and tag, observed that the release tags carry
+> no `solidity/` tree, and concluded the tags were not the deployment source. That was true and
+> irrelevant: the tags carry the **attestor**, which is where the fix landed. We examined the half
+> that had not changed and never looked at the half that had.
+>
+> **Operator impact: none on any released version.** No action is required. If you are running the
+> `main` branch rather than a release tag, you are not running what the project ships.
+>
+> Corrected after Venture23 supplied the commit reference on 2026-09-10. The technical error is ours.
+> The page is corrected rather than deleted so that anyone who saw the original also sees this.
 
 ## Summary
 
@@ -29,7 +54,7 @@ No attacker is required. Any honest attestor casting a NAY triggers this structu
 
 - **Reachability:** permissionless in the sense that matters — no attacker action at all; an honest
   NAY is sufficient.
-- **Affected:** `github.com/venture23-aleo/verulink` @ `main`, reviewed **after** the Veridise and
+- **Affected:** `github.com/venture23-aleo/verulink` @ `main`, reviewed **after** the Veridise and  **— `main` ONLY. Not any released tag; see the correction above.**
   zkSecurity V2 audits.
 - **Scope note:** Verulink runs no Immunefi or HackerOne programme, and Aleo's Immunefi programme
   covers snarkVM/snarkOS only — bridge-application findings are explicitly out of scope. This was
