@@ -1,6 +1,6 @@
 # NR-2026-064 — Sui: the gasless rate-limiter is a fixed window, so an unauthenticated sender admits 2× the operator's cap
 
-**NullRabbit Operator Advisory** · Draft — not yet published
+**NullRabbit Operator Advisory** · Published 2026-09-10
 
 ## Summary
 
