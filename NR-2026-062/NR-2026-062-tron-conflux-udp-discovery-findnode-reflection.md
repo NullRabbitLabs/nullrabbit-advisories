@@ -1,6 +1,6 @@
 # NR-2026-062 — TRON & Conflux: unauthenticated UDP node-discovery answers a spoofable FindNode with a full neighbour list → measured 9.15× / 13.54× reflection amplification (no endpoint proof)
 
-**NullRabbit Operator Advisory** · Draft — pending publish gate
+**NullRabbit Operator Advisory** · Published 2026-09-10
 
 ## Summary
 
@@ -13,7 +13,7 @@ the same spoofable source address. An off-path attacker who forges the victim's 
 turns each node into a **DRDoS reflector**.
 
 This is the textbook connectionless-UDP amplifier that Ethereum's `discv4` closes with its **bonding**
-endpoint proof, and it is the same mechanism and the same fix-class in all three cases — registered as
+endpoint proof, and it is the same mechanism and the same fix-class in both cases — registered as
 **`NRDAX-T0280` (Spoofed Endpoint-Proof Bypass Amplification)**, family `response_amp`.
 
 Both are **MEDIUM**, **availability-only**, and **out of paid scope** (DoS/availability) for each chain's
