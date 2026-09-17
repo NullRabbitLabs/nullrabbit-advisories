@@ -1,23 +1,25 @@
-# NR-2026-062 — TRON & Conflux: unauthenticated UDP node-discovery answers a spoofable FindNode with a full neighbour list → measured 9.15× / 13.54× reflection amplification (no endpoint proof)
+# NR-2026-062 — TRON, Conflux & Dusk: unauthenticated UDP node-discovery answers a spoofable FindNode with a full neighbour list → measured 9.15× / 13.54× / 15.60× reflection amplification (no endpoint proof)
 
-**NullRabbit Operator Advisory** · Published 2026-09-10
+**NullRabbit Operator Advisory** · Published 2026-09-10 · Updated 2026-09-17 (Dusk added as a third instance)
 
 ## Summary
 
-Two chains that wrote their own UDP node-discovery from scratch — **TRON** (`java-tron` /
-`tronprotocol/libp2p`, UDP/18888) and **Conflux** (`conflux-rust`, UDP/32323) — answer an
+Three chains that wrote their own UDP node-discovery from scratch — **TRON** (`java-tron` /
+`tronprotocol/libp2p`, UDP/18888), **Conflux** (`conflux-rust`, UDP/32323) and **Dusk**
+(`dusk-network/kadcast`) — answer an
 **unauthenticated, connectionless `FindNode` with a full neighbour list sent to the datagram's claimed
 source address, with no completed endpoint proof**. There is no bond, no ping/pong token and no
 return-routability check ahead of the amplified reply; Conflux's only gate is a per-IP throttle keyed on
-the same spoofable source address. An off-path attacker who forges the victim's IP as the source therefore
-turns each node into a **DRDoS reflector**.
+the same spoofable source address, and Dusk's only gate is a node-id check whose value is *derived from*
+that same source address. An off-path attacker who forges the victim's IP as the source therefore turns
+each node into a **DRDoS reflector**.
 
 This is the textbook connectionless-UDP amplifier that Ethereum's `discv4` closes with its **bonding**
-endpoint proof, and it is the same mechanism and the same fix-class in both cases — registered as
+endpoint proof, and it is the same mechanism and the same fix-class in all three cases — registered as
 **`NRDAX-T0280` (Spoofed Endpoint-Proof Bypass Amplification)**, family `response_amp`.
 
-Both are **MEDIUM**, **availability-only**, and **out of paid scope** (DoS/availability) for each chain's
-own program → NullRabbit **publish-track**.
+All three are **MEDIUM**, **availability-only**, and **out of paid scope** (DoS/availability) for each
+chain's own program → NullRabbit **publish-track**.
 
 Unlike NR-2026-039 — three source-traced pre-auth crypto burns with no server-side measurement — the
 amplification here is **measured on the wire against the real implementations**, and the byte counts below
@@ -29,8 +31,9 @@ are packet captures, not estimates.
 |---|---|---|---|---|---|
 | `TRON_DISCOVERY_FINDNODE_REFLECTION` | `tron_discovery_findnode_reflection` | UDP/18888 Kademlia discovery | **9.15×** (161 B → 1473 B) | 1 | MEDIUM |
 | `CFX_KRAKEN_TRANSPORT` (CFX-H2 angle) | `conflux_discovery_findnode_reflection` | UDP/32323 Kademlia discovery | **13.54×** well-connected (109 B → 1476 B); **6.9–10.6×** observed live | 2 / 1 | MEDIUM |
+| `DUSK_KADCAST_FINDNODES_REFLECTION` | `dusk_kadcast_findnode_reflection` | kadcast UDP discovery (port operator-set) | **15.60×** IPv6 / **10.06×** IPv4 at the `K_K`=20 default (47 B → 733/473 B); **5.38×** observed live against a 10-peer table | 1 | MEDIUM |
 
-- **Reachability (both):** any host that can send a UDP datagram to the discovery port. No auth, no
+- **Reachability (all three):** any host that can send a UDP datagram to the discovery port. No auth, no
   handshake, no prior contact, no session state. A single spoofed datagram elicits the amplified reply.
 - **Severity:** MEDIUM each — measured bandwidth amplification against an internet-exposed, default-on
   discovery service. Ceiling is third-party DRDoS bandwidth and peering noise, **not** a consensus break.
@@ -112,8 +115,10 @@ not an extreme vector**.
 |---|---|---|---|---|
 | TRON | UDP/18888 | 9.15× | ~8,000 (block-explorer node list) | yes (`node.discovery.enable=true`) |
 | Conflux | UDP/32323 | 13.54× | hundreds (~259 PoW nodes/24 h, block explorer) | yes, as shipped |
+| Dusk | kadcast UDP (operator-set) | 15.60× IPv6 / 10.06× IPv4 | **not estimated** — no census performed | yes, as shipped |
 
-Both populations are orders of magnitude below the classic open-resolver pools (millions). **Honest
+These populations are orders of magnitude below the classic open-resolver pools (millions); the Dusk
+population was not estimated at all and is stated as unknown rather than guessed. **Honest
 bounded severity: a real but contained reflector class, not an internet-scale amplifier.** A precise census
 of nodes actually answering unauthenticated discovery from arbitrary sources would require an active UDP
 probe campaign, which was **not** performed.
@@ -151,10 +156,22 @@ with the ruling recorded in NR-2026-039. Both findings are our own (`source_clas
 plus original wire measurement; neither is an assigned CVE, and neither claims discovery of the underlying
 protocol design, which is well documented as the reason `discv4` carries its bond guard.
 
+Dusk is the third instance, added 2026-09-17. `dusk-network/kadcast` `handling.rs:251-272`
+`handle_find_nodes` answers the kernel UDP source unconditionally with `closest_peers::<K_K>(target)`,
+`K_K` defaulting to 20. Its Blake2s node-id check is **not** return-routability: `verify_header` requires
+`binary_id == Blake2s256(sender_port ‖ src_ip)[..16]`, which is deterministically derivable, so an
+attacker forging source X simply computes the id for X — and `verify_nonce` checks `K_DIFF_MIN_BIT` = 8
+while a node generates its own id at `K_DIFF_PRODUCED_BIT` = 20, so the miner cost is ~2^8 hashes
+(measured 5, 71 and 292 attempts). Two further details are specific to this implementation: each probe
+arriving from a fresh source port is inserted into the victim's routing table, so the reply grows by one
+peer entry per probe and an attacker can walk the table toward `K_K` to raise its own amplification; and
+the reply is emitted from an **ephemeral outbound port**, not the queried listen port, so a detector
+correlating on source port will miss it entirely.
+
 The Conflux reflection is **not a new finding** — it is the CFX-H2 angle already recorded under
 `CFX_KRAKEN_TRANSPORT` (whose CFX-H1 ECIES handshake-burn published as NR-2026-039), where it stood as
 source-confirmed but unmeasured. What is new is the measurement.
 
-Both corpus primitives are registered against `NRDAX-T0280`. This advisory publishes only once each
+All three corpus primitives are registered against `NRDAX-T0280`. This advisory publishes only once each
 primitive is shipped in `NullRabbit/nr-bundles-public` and registered in `HF_DATASET_PRIMITIVES`, so it
 does not outpace its shipped defensive artefact.
