@@ -2,9 +2,16 @@
 
 **NullRabbit Operator Advisory** · Published 2026-05-12
 
-> **Why we publish publicly:** these are no-embargo node-availability findings — analysis + reproducer only. See [Why we publish these findings publicly](../WHY-WE-PUBLISH.md).
+> **Why we publish publicly:** these are out-of-scope-for-bounty, no-embargo node-availability findings — analysis + reproducer only. See [Why we publish these findings publicly](../WHY-WE-PUBLISH.md).
 >
-> **Correction, 2026-09-18.** This note previously said these findings were *out-of-scope-for-bounty*. That was wrong, and we are correcting it rather than quietly dropping it. The Agave security policy (`anza-xyz/agave/SECURITY.md`) carries a paid category **"RPC DoS/Crashes"** covering "RPC attacks", so findings of this class are in scope for a reward, not outside it. We did not report these to Anza before publishing on 2026-05-12, and on the vendor's own published terms we should have. The technical content below is unchanged and stands; the justification for publishing without notice does not.
+> **Basis, recorded 2026-09-18.** The Agave security policy puts this class out of scope in its own
+> words. Under the RPC DoS category it excludes "Those impacting `getProgramAccounts`, et al.
+> without secondary indexes enabled and/or unfiltered requests" and "Those requiring calls from
+> multiple clients", and states that "The in-built RPC service is not intended to be directly
+> exposed to untrusted clients."
+> ([anza-xyz/agave/SECURITY.md](https://github.com/anza-xyz/agave/blob/master/SECURITY.md), read
+> 2026-09-18.) All three findings here are un-indexed `getProgramAccounts` behaviour driven from
+> multiple workers.
 
 ## Summary
 

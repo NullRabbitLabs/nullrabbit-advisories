@@ -11,18 +11,21 @@ deterministically crashes a bootstrapping node during snapshot load from untrust
 hash gate, measured against the real deserializer and index-generation path.
 
 **Corrected 2026-09-18.** This page used to assert, generally, that "vendor `SECURITY.md` files
-explicitly direct out-of-scope findings to public issues". Audited against the vendors we had
-actually published against, that was true of one of them and not the others, so the sentence is
-gone. It was doing load-bearing work it could not carry: "the vendor will not pay for this" is a
-different statement from "the vendor does not want to be told", and only the second justifies
-publishing without notice.
+explicitly direct out-of-scope findings to public issues". A general claim cannot carry that
+weight, because it is true of some vendors and not others, and it was being relied on for vendors
+where nobody had checked. The sentence is gone.
 
-What replaces it is a per-advisory test rather than a general claim. An advisory may go out on the
-publish track only where the vendor's own policy is quoted — the words, the URL, and the date it
-was read — showing the class is excluded, or where there is no reachable channel at all. Silence in
-a security policy is not an exclusion; where a vendor says nothing about scope, the answer is to
-tell them. Where we got that wrong, the advisory carries a correction rather than a quiet edit; see
-NR-2026-001.
+What replaces it is a per-advisory test. An advisory goes on the publish track only where the
+vendor's own policy is quoted — the words, the URL, and the date it was read — showing the class is
+excluded, or where there is no reachable channel at all. Where the vendor says nothing about scope,
+silence is not an exclusion, and the answer is to tell them.
+
+Two things that audit confirmed, since the point is evidence rather than assertion. MystenLabs/Sui
+lists "Attacks involving DDoS" under "Out of scope" and says all other impacts are "ineligible for
+payout". Agave excludes, under its own RPC DoS category, "Those impacting `getProgramAccounts`, et
+al. without secondary indexes enabled and/or unfiltered requests" and "Those requiring calls from
+multiple clients", and separately excludes "Issues involving maliciously crafted snapshots" — the
+class of the flagship example above.
 
 We publish for three reasons:
 
