@@ -2,7 +2,9 @@
 
 **NullRabbit Operator Advisory** · Published 2026-05-12
 
-> **Why we publish publicly:** these are out-of-scope-for-bounty, no-embargo node-availability findings — analysis + reproducer only. See [Why we publish these findings publicly](../WHY-WE-PUBLISH.md).
+> **Why we publish publicly:** these are no-embargo node-availability findings — analysis + reproducer only. See [Why we publish these findings publicly](../WHY-WE-PUBLISH.md).
+>
+> **Correction, 2026-09-18.** This note previously said these findings were *out-of-scope-for-bounty*. That was wrong, and we are correcting it rather than quietly dropping it. The Agave security policy (`anza-xyz/agave/SECURITY.md`) carries a paid category **"RPC DoS/Crashes"** covering "RPC attacks", so findings of this class are in scope for a reward, not outside it. We did not report these to Anza before publishing on 2026-05-12, and on the vendor's own published terms we should have. The technical content below is unchanged and stands; the justification for publishing without notice does not.
 
 ## Summary
 
